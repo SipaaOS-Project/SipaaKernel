@@ -1,5 +1,5 @@
 # SipaaKernel
-SipaaKernel is a x86-based operating system
+SipaaKernel is a x86-based operating system made in C & Assembly.
 
 ## Features
 * IDT
