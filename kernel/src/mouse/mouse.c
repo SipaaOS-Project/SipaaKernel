@@ -30,7 +30,7 @@ int mouse_gety() {
 }
 
 char getMouseStateByte() {
-    return g_statu;
+    return sbyte;
 }
 
 void mouse_wait(int type) {

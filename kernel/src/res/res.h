@@ -15,4 +15,5 @@ extern uint32_t error[];
 extern uint32_t dvdvideololol[];
 extern uint32_t succ[];
 extern uint32_t astralogo[];
+extern uint32_t hex[];
 extern uint8_t deffont[];

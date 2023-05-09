@@ -30,6 +30,29 @@ double pow(double base, double exponent)
 }
 
 // public methods
+Color alpha_blend(Color src, Color new)
+{
+    if (new.a == 255)
+    {
+        return new;
+    }
+    if (new.a == 0)
+    {
+        return src;
+    }
+
+    Color c;
+    //c.a = ((src.a * (255 - new.a) / 255) + new.a);
+    //c.r = ((src.r * (255 - new.a) / 255) + new.r);
+    //c.g = ((src.g * (255 - new.a) / 255) + new.g);
+    //c.b = ((src.b * (255 - new.a) / 255) + new.b);
+    c.a = (((new.a * new.a) + (src.a * (255 - new.a))) >> 8);
+    c.r = (((new.r * new.a) + (src.r * (255 - new.a))) >> 8);
+    c.g = (((new.g * new.a) + (src.g * (255 - new.a))) >> 8);
+    c.b = (((new.b * new.a) + (src.b * (255 - new.a))) >> 8);
+    return c;
+}
+
 void init_libasg(multiboot_info_t *info)
 {
     mbinfo = info;
@@ -48,15 +71,22 @@ void clear_screen(Color color)
 
 void set_pixel(int x, int y, Color color)
 {
+    Color c = color;
+
+    if (c.a < 255 && c.a > 0)
+    {
+        c = alpha_blend(get_pixel(x, y), color);
+    }
+
     unsigned *backbuffer = (unsigned *)(mbinfo->framebuffer_addr + (y + mbinfo->framebuffer_height) * mbinfo->framebuffer_pitch);
-    backbuffer[x] = (color.r << 16) | (color.g << 8) | color.b;
+    backbuffer[x] = (c.a << 24) | (c.r << 16) | (c.g << 8) | c.b;
 }
 
 Color get_pixel(int x, int y)
 {
     unsigned *backbuffer = (unsigned *)(mbinfo->framebuffer_addr + (y + mbinfo->framebuffer_height) * mbinfo->framebuffer_pitch);
     unsigned color = backbuffer[x];
-    return (Color){(color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF};
+    return (Color){(color >> 24) & 0xFF, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF};
 }
 
 void set_rect(int x, int y, int width, int height, Color color)
