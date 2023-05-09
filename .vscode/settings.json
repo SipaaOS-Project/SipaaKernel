@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "boot_info.h": "c",
+        "astra-graphics.h": "c",
+        "random": "c",
+        "libframebuf.h": "c",
+        "libfbfonts.h": "c",
+        "libfbbitmaps.h": "c",
+        "stdint.h": "c",
+        "multiboot.h": "c",
+        "libasg.h": "c",
+        "rmusr.h": "c"
+},
+    "C_Cpp.errorSquiggles": "disabled"
+}
