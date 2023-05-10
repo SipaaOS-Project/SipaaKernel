@@ -37,6 +37,7 @@ typedef struct
     uint8_t height;
 } FontHeader;
 
+Color from_argb(uint8_t a, uint8_t r, uint8_t g, uint8_t b);
 void init_libasg(multiboot_info_t *info);
 void clear_screen(Color color);
 void set_pixel(int x, int y, Color color);

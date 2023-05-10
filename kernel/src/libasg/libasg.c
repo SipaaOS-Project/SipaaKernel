@@ -30,6 +30,16 @@ double pow(double base, double exponent)
 }
 
 // public methods
+Color from_argb(uint8_t a, uint8_t r, uint8_t g, uint8_t b)
+{
+    Color c;
+    c.a = a;
+    c.r = r;
+    c.g = g;
+    c.b = b;
+
+    return c;
+}
 Color alpha_blend(Color src, Color new)
 {
     if (new.a == 255)
@@ -81,7 +91,6 @@ void set_pixel(int x, int y, Color color)
     unsigned *backbuffer = (unsigned *)(mbinfo->framebuffer_addr + (y + mbinfo->framebuffer_height) * mbinfo->framebuffer_pitch);
     backbuffer[x] = (c.a << 24) | (c.r << 16) | (c.g << 8) | c.b;
 }
-
 Color get_pixel(int x, int y)
 {
     unsigned *backbuffer = (unsigned *)(mbinfo->framebuffer_addr + (y + mbinfo->framebuffer_height) * mbinfo->framebuffer_pitch);
@@ -172,6 +181,7 @@ Position set_string(char *string, int x, int y, Font f, Color col)
 
 void set_round_rect(int x, int y, int width, int height, int radius, Color color)
 {
+    /**
     for (int j = y; j < (y + height); j++)
     {
         for (int i = x; i < (x + width); i++)
@@ -187,6 +197,46 @@ void set_round_rect(int x, int y, int width, int height, int radius, Color color
             else
             {
                 set_pixel(i, j, color);
+            }
+        }
+    }**/
+    
+    int x_end = x + width - 1;
+    int y_end = y + height - 1;
+    int r = radius;
+
+    set_rect(x + r, y, width - 2 * r, height, color);
+    set_rect(x, y + r, r, height - 2 * r, color);
+    set_rect(x + width - r, y + r, r, height - 2 * r, color);
+
+    for (int j = -r; j <= r; j++)
+    {
+        for (int i = -r; i <= r; i++)
+        {
+            int distance_sq = i * i + j * j;
+            if (distance_sq <= r * r)
+            {
+                int pixel_x, pixel_y;
+
+                // Top-left corner
+                pixel_x = x + r + i;
+                pixel_y = y + r + j;
+                set_pixel(pixel_x, pixel_y, color);
+
+                // Top-right corner
+                pixel_x = x_end - r + i;
+                pixel_y = y + r + j;
+                set_pixel(pixel_x, pixel_y, color);
+
+                // Bottom-left corner
+                pixel_x = x + r + i;
+                pixel_y = y_end - r + j;
+                set_pixel(pixel_x, pixel_y, color);
+
+                // Bottom-right corner
+                pixel_x = x_end - r + i;
+                pixel_y = y_end - r + j;
+                set_pixel(pixel_x, pixel_y, color);
             }
         }
     }
