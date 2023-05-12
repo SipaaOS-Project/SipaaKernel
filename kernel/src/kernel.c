@@ -8,13 +8,19 @@
 #include <res/res.h>
 #include <arch/ioport.h>
 #include <siui/button.h>
+#include <siui/window.h>
 #include <tasking/tasking.h>
+#include <multiboot/boot_info.h>
+#include <debug/debug.h>
 
+Window win;
 siui_button_t btn;
+Image cursorImage;
 Color white;
 Color black;
 Color transparentwhite;
 Font f;
+task_t buttonTask, clearTask, mouseTask;
 
 void clear_task()
 {
@@ -22,26 +28,50 @@ void clear_task()
 }
 void mouse_task()
 {
-   set_pixel(mouse_getx(), mouse_gety(), white);
+   set_alphaImage(&cursorImage, mouse_getx(), mouse_gety(), from_argb(255, 1, 1, 1));
 }
 void button_task()
 {
+   window_draw(&win);
+   window_update(&win);
+}
+void okbtn_clicked()
+{
+   buttonTask.disabled = true; // this should make the multitasking not run the window render because it execute the code only if the task isn't running.
+}
+void windraw(Rectangle winbounds)
+{
+   set_string("Did you know that SipaaKernel wallpapers\ncame from Venezuela?", winbounds.pos.x + 20, winbounds.pos.y + 20, f, from_argb(255, 255, 255, 255));
+   btn.x = winbounds.pos.x + winbounds.size.width - btn.width - 20;
+   btn.y = winbounds.pos.y + (winbounds.size.height - 32) - btn.height - 20;
+   
    render_button(btn);
    update_button(btn);
-}
-void clicked()
-{
-   set_string("Clicked!", 300, 300, f, white);
 }
 
 void _kstart(multiboot_info_t *mboot_info)
 {
+   writedbg("[Core] Setting up Multiboot infos... ");
+   set_bootinfo(mboot_info);
+   writedbg("OK\n");
+   writedbg("[Core] Initializing Global Descriptor Table... ");
    init_gdt();
+   writedbg("OK\n");
+   writedbg("[Core] Initializing Interrupt Descriptor Table... ");
    init_idt();
+   writedbg("OK\n");
+   writedbg("[Core] Initializing Task State Segment... ");
    init_tss();
+   writedbg("OK\n");
+   writedbg("[Core] Initializing Memory Manager... ");
    init_mm(mboot_info);
+   writedbg("OK\n");
+   writedbg("[Core] Initializing Standard I/O Library... ");
    init_stdio();
+   writedbg("OK\n");
+   writedbg("[Core] Initializing Mouse... ");
    init_mouse((int)mboot_info->framebuffer_width, (int)mboot_info->framebuffer_height);
+   writedbg("OK\n");
    init_libasg(mboot_info);
 
    white = from_argb(255, 255, 255, 255);
@@ -52,23 +82,21 @@ void _kstart(multiboot_info_t *mboot_info)
    f.charheight = 16;
    f.pixels = (uint8_t *)deffont;
 
-   Image* img;
-   img->width = DVDVIDEOLOLOL_WIDTH;
-   img->height = DVDVIDEOLOLOL_HEIGHT;
-   img->pixels = (uint32_t *)dvdvideololol;
+   cursorImage.width = CURSOR_WIDTH;
+   cursorImage.height = CURSOR_HEIGHT;
+   cursorImage.pixels = (uint32_t *)cursor;
    
-   btn.text = "Test";
-   btn.background = white;
-   btn.foreground = black;
-   btn.radius = 0;
-   btn.x = 100;
-   btn.y = 100;
-   btn.clicked = clicked;
    btn.width = 150;
    btn.height = 40;
+   btn.radius = 6;
+   btn.text = "OK";
+   btn.background = from_argb(255, 0, 0, 0);
+   btn.foreground = from_argb(255, 255, 255, 255);
+   btn.clicked = okbtn_clicked;
    btn.font = f;
    
-   task_t buttonTask, clearTask, mouseTask;
+   init_window(&win, "Fact of the day", mb_info->framebuffer_width / 2 - 400 / 2, mb_info->framebuffer_height / 2 - 200 / 2, 400, 200);
+   win.draw = windraw;
    configure_task(&buttonTask, 1024, button_task);
    configure_task(&mouseTask, 1024, mouse_task);
    configure_task(&clearTask, 1024, clear_task);
@@ -77,49 +105,10 @@ void _kstart(multiboot_info_t *mboot_info)
    while (1)
    {
       execute_task(&clearTask);
-      //execute_task(&buttonTask);
-      set_image(img, 100, 100);
-      //set_rect(100, 100, DVDVIDEOLOLOL_WIDTH, DVDVIDEOLOLOL_HEIGHT, transparentwhite);
-      blur(100, 100, DVDVIDEOLOLOL_WIDTH, DVDVIDEOLOLOL_HEIGHT, 30);
+      set_string(get_debuglogs(), 10, 10, f, white);
+      execute_task(&buttonTask);
+      //ApplyAA();
       execute_task(&mouseTask);
       flush();
    }
 }
-
-void blur(int x, int y, int width, int height, int intensity)
-{
-        for (int w = x; w < x + width; w++)
-        {
-            for (int h = y; h < x + height; h++)
-            {
-                int r = 0, g = 0, b = 0, a = 0;
-                int counter = 0;
-
-                for (int ww = w - intensity; ww < w + intensity; ww++)
-                {
-                    for (int hh = h - intensity; hh < h + intensity; hh++)
-                    {
-                        if (ww >= 0 && hh >= 0 && ww < mb_info->framebuffer_width && hh < mb_info->framebuffer_height)
-                        {
-                            Color color = get_pixel(ww,hh);
-
-                            r += color.r;
-                            g += color.g;
-                            b += color.b;
-                            a += color.a;
-
-                            counter++;
-                        }
-                    }
-                }
-
-                r /= counter;
-                g /= counter;
-                b /= counter;
-                a /= counter;
-
-                set_pixel(w, h, from_argb(a, r, g, b));
-                //SetPixel(w, h, Color.FromArgb((int)a, (int)r, (int)g, (int)b).ToArgb());
-            }
-        }
-    }

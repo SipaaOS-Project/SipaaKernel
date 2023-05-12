@@ -127,6 +127,31 @@ void set_image(Image *image, int x, int y)
     }
 }
 
+void set_alphaImage(Image *image, int x, int y, Color alphaColor)
+{
+    for (int j = 0; j < image->height; j++)
+    {
+        for (int i = 0; i < image->width; i++)
+        {
+            Color color;
+            uint32_t pixel = image->pixels[j * image->width + i];
+            color.a = (pixel >> 24) & 0xFF;
+            color.r = (pixel >> 16) & 0xFF;
+            color.g = (pixel >> 8) & 0xFF;
+            color.b = pixel & 0xFF;
+            
+            if (color.r == alphaColor.r && color.g == alphaColor.g && color.b == alphaColor.b)
+            {
+                // do nothing
+            }
+            else
+            {
+                set_pixel(x + i, y + j, color);
+            }
+        }
+    }
+}
+
 Image create_image(uint32_t *data, uint32_t width, uint32_t height)
 {
     Image img;

@@ -8,6 +8,8 @@
 #define SUCC_HEIGHT 70
 #define DVDVIDEOLOLOL_HEIGHT 151
 #define DVDVIDEOLOLOL_WIDTH 213
+#define CURSOR_HEIGHT 18
+#define CURSOR_WIDTH 12
 #define DEFFONT_CHARHEIGHT 16
 #define DEFFONT_CHARWIDTH 8
 
@@ -16,4 +18,5 @@ extern uint32_t dvdvideololol[];
 extern uint32_t succ[];
 extern uint32_t astralogo[];
 extern uint32_t hex[];
+extern uint32_t cursor[];
 extern uint8_t deffont[];

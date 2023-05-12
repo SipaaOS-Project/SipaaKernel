@@ -7,6 +7,7 @@ typedef struct task
   uint32_t *stack;
   void (*entry)(void);
   bool running;
+  bool disabled;
   struct task *next;
 } task_t;
 

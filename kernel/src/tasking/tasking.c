@@ -52,11 +52,13 @@ void configure_task(task_t *task, size_t memory, void (*entry)(void))
 
 void execute_task(task_t *task)
 {
-
-    if (!task->running)
+    if (!task->disabled)
     {
-        task->running = true;
-        task->entry();
-        task->running = false;
+        if (!task->running)
+        {
+            task->running = true;
+            task->entry();
+            task->running = false;
+        }
     }
 }
